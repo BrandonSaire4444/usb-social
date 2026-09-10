@@ -1,0 +1,327 @@
+/* =========================================================================
+   USB SOCIAL — Hoja de estilos principal
+   Universidad Salesiana de Bolivia — Programación Avanzada
+   ========================================================================= */
+
+:root{
+    --usb-azul:      #003399;
+    --usb-azul-dark: #001f66;
+    --usb-rojo:      #D31111;
+    --usb-amarillo:  #FFCC00;
+    --usb-fondo:     #f4f6fb;
+}
+
+/* =========================================================================
+   BASE
+   ========================================================================= */
+body{
+    background-color: var(--usb-fondo);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #212529;
+}
+
+.seccion{ display: none; }
+.seccion.activa{ display: block; animation: fadeIn .25s ease; }
+
+@keyframes fadeIn{
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   NAVBAR INSTITUCIONAL
+   ========================================================================= */
+.navbar-usb{
+    background: linear-gradient(90deg, var(--usb-azul) 0%, var(--usb-azul-dark) 100%);
+    border-bottom: 5px solid var(--usb-amarillo);
+}
+.navbar-usb .navbar-brand{
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+.navbar-usb .nav-link{
+    color: #e9ecef !important;
+    transition: color .15s ease;
+}
+.navbar-usb .nav-link:hover{
+    color: var(--usb-amarillo) !important;
+}
+.navbar-usb .nav-link.active{
+    color: var(--usb-amarillo) !important;
+    font-weight: 600;
+}
+.navbar-usb .navbar-toggler{
+    border-color: rgba(255,255,255,.4);
+}
+.logo-usb{
+    width: 45px;
+    height: 45px;
+    margin-right: 10px;
+}
+.navbar-subtitulo{
+    font-size: .7rem;
+    color: var(--usb-amarillo);
+    font-weight: 400;
+}
+
+/* =========================================================================
+   BOTONES INSTITUCIONALES
+   ========================================================================= */
+.btn-usb-rojo{
+    background-color: var(--usb-rojo);
+    border-color: var(--usb-rojo);
+    color: #fff;
+}
+.btn-usb-rojo:hover,
+.btn-usb-rojo:focus{
+    background-color: #a80d0d;
+    border-color: #a80d0d;
+    color: #fff;
+}
+
+.btn-usb-azul{
+    background-color: var(--usb-azul);
+    border-color: var(--usb-azul);
+    color: #fff;
+}
+.btn-usb-azul:hover,
+.btn-usb-azul:focus{
+    background-color: #00246e;
+    border-color: #00246e;
+    color: #fff;
+}
+
+.btn-usb-amarillo{
+    background-color: var(--usb-amarillo);
+    border-color: var(--usb-amarillo);
+    color: #1a1a1a;
+    font-weight: 600;
+}
+.btn-usb-amarillo:hover,
+.btn-usb-amarillo:focus{
+    background-color: #e6b800;
+    border-color: #e6b800;
+    color: #1a1a1a;
+}
+
+/* =========================================================================
+   FRANJA DE TÍTULO DE SECCIÓN
+   ========================================================================= */
+.franja-titulo{
+    background-color: var(--usb-azul);
+    color: #fff;
+    border-left: 6px solid var(--usb-amarillo);
+    padding: .6rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.2rem;
+}
+
+/* =========================================================================
+   TARJETAS GENERALES
+   ========================================================================= */
+.card{
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+/* =========================================================================
+   TARJETAS DE MASCOTAS
+   ========================================================================= */
+.card-mascota{
+    overflow: hidden;
+    transition: transform .15s ease, box-shadow .15s ease;
+    height: 100%;
+}
+.card-mascota:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,.15);
+}
+.card-mascota .card-img-top{
+    height: 220px;
+    object-fit: cover;
+    background-color: #e9ecef;
+}
+.card-mascota .badge-especie{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.badge-disponible{ background-color: #198754; }
+.badge-adoptado  { background-color: var(--usb-rojo); }
+
+/* =========================================================================
+   FEED (publicaciones)
+   ========================================================================= */
+.pub-card{
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.pub-card img{
+    border-radius: 10px;
+    max-height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+.pub-avatar{
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--usb-azul);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* =========================================================================
+   PERFIL
+   ========================================================================= */
+.perfil-cover{
+    height: 180px;
+    background: linear-gradient(135deg, var(--usb-azul), var(--usb-rojo));
+}
+.perfil-avatar-grande{
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    background: #fff;
+    color: var(--usb-azul);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: -60px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+/* =========================================================================
+   TABLA DE NOTAS
+   ========================================================================= */
+.tabla-header-usb{
+    background-color: var(--usb-azul);
+    color: #fff;
+}
+.tabla-header-usb th{
+    border: none;
+    font-weight: 600;
+}
+.badge-nota{
+    padding: .35rem .7rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: .8rem;
+}
+.badge-nota-alta { background: #d1fae5; color: #065f46; }
+.badge-nota-media{ background: #fef3c7; color: #92400e; }
+.badge-nota-baja { background: #fee2e2; color: #991b1b; }
+
+/* =========================================================================
+   TIENDA
+   ========================================================================= */
+.card-producto .card-img-top{
+    height: 180px;
+    object-fit: cover;
+    background: #e9ecef;
+}
+.card-producto .precio{
+    font-weight: 700;
+    color: var(--usb-rojo);
+    font-size: 1.15rem;
+}
+
+/* =========================================================================
+   MODALES
+   ========================================================================= */
+.modal-header-usb{
+    background-color: var(--usb-azul);
+    color: #fff;
+    border-bottom: 4px solid var(--usb-amarillo);
+}
+.foto-modal{
+    width: 100%;
+    max-height: 380px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+/* =========================================================================
+   CALCULADORA
+   ========================================================================= */
+.calc-display{
+    background: #0d1b3d;
+    color: #00ff88;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 2rem;
+    text-align: right;
+    padding: .9rem 1rem;
+    border-radius: 10px;
+    margin-bottom: .8rem;
+    min-height: 70px;
+    word-break: break-all;
+    border-bottom: 4px solid var(--usb-amarillo);
+}
+.calc-btn{
+    width: 100%;
+    padding: .9rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.fib-output{
+    background: #fff8dc;
+    border-left: 4px solid var(--usb-amarillo);
+    padding: .8rem 1rem;
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: .9rem;
+}
+
+/* =========================================================================
+   ESTADO VACÍO
+   ========================================================================= */
+.empty-state{
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+.empty-state i{
+    font-size: 2.5rem;
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+footer.footer-usb{
+    background-color: var(--usb-azul);
+    color: #fff;
+    border-top: 5px solid var(--usb-amarillo);
+    padding: 1.2rem 0;
+    margin-top: 3rem;
+}
+footer.footer-usb strong{ color: var(--usb-amarillo); }
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+@media (max-width: 576px){
+    .perfil-avatar-grande{
+        width: 90px;
+        height: 90px;
+        font-size: 2rem;
+        margin-top: -45px;
+    }
+    .calc-display{ font-size: 1.6rem; }
+    .franja-titulo h5{ font-size: 1rem; }
+}
