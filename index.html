@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USB Social — Red Universitaria Salesiana</title>
+
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<!-- CSS propio -->
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- ======================= NAVBAR ======================= -->
+<nav class="navbar navbar-expand-lg navbar-usb navbar-dark py-2 mb-4 d-none" id="navbarApp">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#" onclick="mostrarSeccion('feed');return false;">
+      <svg class="logo-usb" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#003399" stroke="#FFCC00" stroke-width="4"/>
+        <path d="M50 20c-8 0-14 6-14 14 0 6 4 10 8 13-9 3-16 11-16 21h44c0-10-7-18-16-21 4-3 8-7 8-13 0-8-6-14-14-14z" fill="#FFCC00"/>
+        <text x="50" y="88" text-anchor="middle" font-size="14" fill="#D31111" font-weight="bold" font-family="Arial">USB</text>
+      </svg>
+      <div>
+        <span>USB Social</span>
+        <small class="d-block navbar-subtitulo">Red Universitaria Salesiana</small>
+      </div>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuUSB">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="menuUSB">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('feed');return false;"><i class="bi bi-house-door"></i> Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('perfil');return false;"><i class="bi bi-person-circle"></i> Mi Perfil</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('notas');return false;"><i class="bi bi-journal-text"></i> Notas</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('mascotas');return false;"><i class="bi bi-heart"></i> Mascotas</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('tienda');return false;"><i class="bi bi-shop"></i> Tienda</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('calculadora');return false;"><i class="bi bi-calculator"></i> Calculadora</a></li>
+        <li class="nav-item ms-lg-3 d-flex align-items-center">
+          <span id="navUsuario" class="text-white small me-2"></span>
+          <button class="btn btn-sm btn-usb-amarillo" onclick="cerrarSesion()">
+            <i class="bi bi-box-arrow-right"></i> Salir
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ======================= PANTALLA DE LOGIN / REGISTRO ======================= -->
+<div class="container" id="pantallaAuth">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-5">
+
+      <div class="text-center mb-4">
+        <svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="48" fill="#003399" stroke="#FFCC00" stroke-width="4"/>
+          <path d="M50 20c-8 0-14 6-14 14 0 6 4 10 8 13-9 3-16 11-16 21h44c0-10-7-18-16-21 4-3 8-7 8-13 0-8-6-14-14-14z" fill="#FFCC00"/>
+          <text x="50" y="88" text-anchor="middle" font-size="14" fill="#D31111" font-weight="bold" font-family="Arial">USB</text>
+        </svg>
+        <h3 class="mt-2" style="color:var(--usb-azul);font-weight:700;">USB Social</h3>
+        <p class="text-muted small mb-0">Red exclusiva para estudiantes de la Universidad Salesiana de Bolivia</p>
+      </div>
+
+      <div class="card p-4 shadow">
+        <ul class="nav nav-pills nav-justified mb-3">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabLogin">Iniciar sesión</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabRegistro">Registrarme</button></li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- LOGIN -->
+          <div class="tab-pane fade show active" id="tabLogin">
+            <input type="email" id="loginEmail" class="form-control mb-2" placeholder="Correo institucional">
+            <input type="password" id="loginPass" class="form-control mb-3" placeholder="Contraseña">
+            <button class="btn btn-usb-rojo w-100" onclick="iniciarSesion()">
+              <i class="bi bi-box-arrow-in-right"></i> Entrar
+            </button>
+          </div>
+
+          <!-- REGISTRO -->
+          <div class="tab-pane fade" id="tabRegistro">
+            <input type="text" id="regNombre" class="form-control mb-2" placeholder="Nombre completo">
+            <input type="email" id="regEmail" class="form-control mb-2" placeholder="Correo institucional">
+            <input type="password" id="regPass" class="form-control mb-2" placeholder="Contraseña">
+            <input type="text" id="regCarrera" class="form-control mb-2" placeholder="Carrera (Ej. Ing. de Sistemas)">
+            <input type="number" id="regSemestre" class="form-control mb-3" placeholder="Semestre" min="1" max="10">
+            <button class="btn btn-usb-azul w-100" onclick="registrarse()">
+              <i class="bi bi-person-plus"></i> Crear cuenta
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center text-muted small mt-3">
+        Universidad Salesiana de Bolivia — Programación Avanzada
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= APLICACIÓN (post-login) ======================= -->
+<div class="container d-none" id="pantallaApp">
+
+  <!-- ============ FEED ============ -->
+  <section id="seccion-feed" class="seccion activa">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-house-door"></i> Inicio</h5></div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card p-3 mb-3">
+          <textarea id="nuevaPubContenido" class="form-control mb-2" rows="2" placeholder="¿Qué estás pensando, estudiante USB?"></textarea>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <input type="file" id="nuevaPubImagen" class="form-control form-control-sm" style="max-width:280px;" accept="image/*">
+            <button class="btn btn-usb-rojo btn-sm" onclick="publicar()">
+              <i class="bi bi-send"></i> Publicar
+            </button>
+          </div>
+        </div>
+
+        <div id="feedLista"></div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card p-3 mb-3">
+          <h6 style="color:var(--usb-azul);"><i class="bi bi-people"></i> Estudiantes USB</h6>
+          <div id="listaEstudiantes" class="mt-2"></div>
+        </div>
+        <div class="card p-3">
+          <h6 style="color:var(--usb-azul);"><i class="bi bi-info-circle"></i> Acerca de</h6>
+          <p class="small text-muted mb-0">
+            Red social académica de la Universidad Salesiana de Bolivia.
+            Comparte, revisa tus notas, adopta mascotas y compra en la tienda universitaria.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PERFIL ============ -->
+  <section id="seccion-perfil" class="seccion">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-person-circle"></i> Mi Perfil</h5></div>
+
+    <div class="card mb-4 overflow-hidden">
+      <div class="perfil-cover"></div>
+      <div class="p-4">
+        <div class="d-flex align-items-end gap-3 flex-wrap">
+          <div id="perfilAvatar" class="perfil-avatar-grande">U</div>
+          <div>
+            <h4 id="perfilNombre" class="mb-0">—</h4>
+            <small class="text-muted" id="perfilCarrera">—</small>
+          </div>
+          <button class="btn btn-usb-azul btn-sm ms-auto" onclick="abrirEditarPerfil()">
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+        </div>
+        <hr>
+        <p id="perfilBio" class="text-muted mb-2">Sin biografía.</p>
+        <p class="mb-1"><i class="bi bi-envelope"></i> <span id="perfilEmail">—</span></p>
+        <p class="mb-0"><i class="bi bi-calendar3"></i> Semestre: <span id="perfilSemestre">—</span></p>
+      </div>
+    </div>
+
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-bar-chart"></i> Mis Reportes Académicos</h5></div>
+    <div class="row g-3 mb-4" id="reporteCards"></div>
+  </section>
+
+  <!-- ============ NOTAS ============ -->
+  <section id="seccion-notas" class="seccion">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-journal-text"></i> Registro de Notas</h5></div>
+
+    <div class="card p-3 mb-3">
+      <h6 style="color:var(--usb-azul);"><i class="bi bi-plus-circle"></i> Nueva nota</h6>
+      <div class="row g-2">
+        <div class="col-md-5"><input id="notaNombre" class="form-control" placeholder="Nombre del estudiante"></div>
+        <div class="col-md-4"><input id="notaMateria" class="form-control" placeholder="Materia"></div>
+        <div class="col-md-2"><input id="notaValor" type="number" step="1" min="0" max="100" class="form-control" placeholder="Nota"></div>
+        <div class="col-md-1 d-grid">
+          <button class="btn btn-usb-rojo" onclick="guardarNota()"><i class="bi bi-save"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="tabla-header-usb">
+            <tr><th>ID</th><th>Nombre</th><th>Materia</th><th>Nota</th><th></th></tr>
+          </thead>
+          <tbody id="tablaNotas"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MASCOTAS ============ -->
+  <section id="seccion-mascotas" class="seccion">
+    <div class="franja-titulo d-flex justify-content-between align-items-center flex-wrap">
+      <h5 class="m-0"><i class="bi bi-heart"></i> Mascotas en Adopción</h5>
+      <button class="btn btn-usb-amarillo btn-sm mt-2 mt-md-0" onclick="abrirFormMascota()">
+        <i class="bi bi-plus-circle"></i> Nueva mascota
+      </button>
+    </div>
+
+    <div class="card p-3 mb-4 d-none" id="formMascotaCard">
+      <h6 style="color:var(--usb-azul);">Registrar mascota</h6>
+      <div class="row g-2">
+        <div class="col-md-4"><input id="mNombre" class="form-control" placeholder="Nombre"></div>
+        <div class="col-md-4">
+          <select id="mEspecie" class="form-select">
+            <option value="">Especie...</option>
+            <option>Perro</option><option>Gato</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="col-md-4"><input id="mEdad" type="number" min="0" class="form-control" placeholder="Edad"></div>
+        <div class="col-md-4"><input id="mRaza" class="form-control" placeholder="Raza"></div>
+        <div class="col-md-4"><input id="mSalud" class="form-control" placeholder="Salud / Vacunas"></div>
+        <div class="col-md-4"><input id="mFoto" type="file" accept="image/*" class="form-control"></div>
+        <div class="col-12"><textarea id="mDesc" class="form-control" rows="2" placeholder="Descripción / Historia"></textarea></div>
+        <div class="col-12 text-end">
+          <button class="btn btn-outline-secondary btn-sm" onclick="cerrarFormMascota()">Cancelar</button>
+          <button class="btn btn-usb-rojo btn-sm" onclick="guardarMascota()"><i class="bi bi-save"></i> Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="galeriaMascotas" class="row g-4"></div>
+  </section>
+
+  <!-- ============ TIENDA ============ -->
+  <section id="seccion-tienda" class="seccion">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-shop"></i> Tienda Estudiantil USB</h5></div>
+    <div id="galeriaProductos" class="row g-4"></div>
+  </section>
+
+  <!-- ============ CALCULADORA ============ -->
+  <section id="seccion-calculadora" class="seccion">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-calculator"></i> Calculadora Científica</h5></div>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <div class="calc-display" id="calcDisplay">0</div>
+          <div class="row g-2">
+            <div class="col-3"><button class="btn btn-secondary calc-btn" onclick="calcClear()">C</button></div>
+            <div class="col-3"><button class="btn btn-secondary calc-btn" onclick="calcBack()">←</button></div>
+            <div class="col-3"><button class="btn btn-secondary calc-btn" onclick="calcOp('/')">÷</button></div>
+            <div class="col-3"><button class="btn btn-warning calc-btn" onclick="calcOp('*')">×</button></div>
+
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('7')">7</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('8')">8</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('9')">9</button></div>
+            <div class="col-3"><button class="btn btn-warning calc-btn" onclick="calcOp('-')">−</button></div>
+
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('4')">4</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('5')">5</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('6')">6</button></div>
+            <div class="col-3"><button class="btn btn-warning calc-btn" onclick="calcOp('+')">+</button></div>
+
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('1')">1</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('2')">2</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('3')">3</button></div>
+            <div class="col-3"><button class="btn btn-success calc-btn" onclick="calcIgual()">=</button></div>
+
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('0')">0</button></div>
+            <div class="col-3"><button class="btn btn-light calc-btn" onclick="calcNum('.')">.</button></div>
+            <div class="col-3"><button class="btn btn-secondary calc-btn" onclick="calcOp('%')">%</button></div>
+            <div class="col-3"><button class="btn btn-secondary calc-btn" onclick="calcOp('**')">x²</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h6 style="color:var(--usb-azul);"><i class="bi bi-diagram-3"></i> Serie de Fibonacci</h6>
+          <p class="small text-muted">Usa el número en pantalla como N para generar los primeros N términos.</p>
+          <button class="btn btn-usb-azul mb-3" onclick="generarFibonacci()">
+            <i class="bi bi-play-fill"></i> Generar Fibonacci
+          </button>
+          <div class="fib-output" id="fibOutput">Esperando N...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ======================= MODAL EDICIÓN PERFIL ======================= -->
+<div class="modal fade" id="modalEditarPerfil" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-header-usb">
+        <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Perfil</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input id="editNombre" class="form-control mb-2" placeholder="Nombre">
+        <input id="editCarrera" class="form-control mb-2" placeholder="Carrera">
+        <input id="editSemestre" type="number" class="form-control mb-2" placeholder="Semestre">
+        <textarea id="editBio" class="form-control" rows="2" placeholder="Biografía"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-usb-azul" onclick="guardarPerfil()"><i class="bi bi-save"></i> Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= FOOTER ======================= -->
+<footer class="footer-usb text-center">
+  <div class="container">
+    <p class="mb-1">Universidad Salesiana de Bolivia — Materia: Programación Avanzada</p>
+    <p class="mb-0">Desarrollado por: <strong>Ing. MACRO</strong> (Ingeniero Miguel Angel Cruz Ramos)</p>
+  </div>
+</footer>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Módulos del sistema (el orden importa) -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/perfil.js"></script>
+<script src="js/notas.js"></script>
+<script src="js/mascotas.js"></script>
+<script src="js/feed.js"></script>
+<script src="js/tienda.js"></script>
+<script src="js/calculadora.js"></script>
+</body>
+</html>
