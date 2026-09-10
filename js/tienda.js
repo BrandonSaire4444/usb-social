@@ -5,6 +5,8 @@
    Columnas: id, nombre, descripcion, precio, categoria, imagen, stock
    ========================================================================= */
 
+let fotoProductoBase64 = '';
+
 /* =========================================================================
    1. CARGAR PRODUCTOS
    ========================================================================= */
@@ -38,6 +40,9 @@ async function cargarProductos(){
                 <div class="empty-state">
                     <i class="bi bi-shop-window"></i>
                     <p class="mt-2">Aún no hay productos en la tienda.</p>
+                    <button class="btn btn-usb-azul btn-sm" onclick="abrirFormProducto()">
+                        <i class="bi bi-plus-circle"></i> Agregar el primero
+                    </button>
                 </div>
             </div>`;
         return;
@@ -56,12 +61,13 @@ function renderizarProductos(lista){
         const sinStock   = (p.stock || 0) <= 0;
         const claseStock = sinStock ? 'badge-adoptado' : 'badge-disponible';
         const textoStock = sinStock ? 'Agotado' : `Stock: ${p.stock}`;
+        const imgFinal   = p.imagen && p.imagen.trim() !== '' ? p.imagen : placeholderProducto();
 
         return `
             <div class="col-sm-6 col-lg-4">
                 <div class="card card-producto h-100 position-relative">
                     <span class="badge ${claseStock} badge-especie">${textoStock}</span>
-                    <img src="${p.imagen || placeholderProducto()}"
+                    <img src="${imgFinal}"
                          class="card-img-top"
                          alt="${escapeHtml(p.nombre)}"
                          onerror="this.src='${placeholderProducto()}'">
@@ -75,11 +81,17 @@ function renderizarProductos(lista){
                         </p>
                         <div class="mt-auto d-flex justify-content-between align-items-center">
                             <span class="precio">Bs. ${Number(p.precio).toFixed(2)}</span>
-                            <button class="btn btn-usb-azul btn-sm"
-                                    onclick="comprarProducto(${p.id})"
-                                    ${sinStock ? 'disabled' : ''}>
-                                <i class="bi bi-cart-plus"></i> Comprar
-                            </button>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-outline-danger btn-sm"
+                                        onclick="eliminarProducto(${p.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <button class="btn btn-usb-azul btn-sm"
+                                        onclick="comprarProducto(${p.id})"
+                                        ${sinStock ? 'disabled' : ''}>
+                                    <i class="bi bi-cart-plus"></i> Comprar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -100,10 +112,102 @@ function placeholderProducto(){
 }
 
 /* =========================================================================
-   4. SIMULACIÓN DE COMPRA
-   -------------------------------------------------------------------------
-   Por ahora solo muestra un toast. Se puede mejorar con una tabla
-   "pedidos" en Supabase si el proyecto lo requiere.
+   4. ABRIR / CERRAR FORMULARIO DE PRODUCTO
+   ========================================================================= */
+function abrirFormProducto(){
+    document.getElementById('formProductoCard').classList.remove('d-none');
+    document.getElementById('pNombre').focus();
+}
+
+function cerrarFormProducto(){
+    document.getElementById('formProductoCard').classList.add('d-none');
+    limpiarFormProducto();
+}
+
+function limpiarFormProducto(){
+    ['pNombre','pPrecio','pStock','pDesc'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('pCategoria').value = '';
+    document.getElementById('pImagen').value    = '';
+    fotoProductoBase64 = '';
+
+    const preview = document.getElementById('pPreview');
+    if(preview) preview.remove();
+}
+
+/* =========================================================================
+   5. GUARDAR PRODUCTO
+   ========================================================================= */
+async function guardarProducto(){
+    const nombre    = document.getElementById('pNombre').value.trim();
+    const precio    = Number(document.getElementById('pPrecio').value);
+    const stock     = Number(document.getElementById('pStock').value) || 0;
+    const categoria = document.getElementById('pCategoria').value.trim();
+    const desc      = document.getElementById('pDesc').value.trim();
+    const imgInput  = document.getElementById('pImagen').files[0];
+
+    // Validaciones
+    if(!nombre || Number.isNaN(precio) || precio < 0){
+        mostrarToast('Completa nombre y precio válido.', 'warning');
+        return;
+    }
+
+    // Convertir imagen a Base64 si existe
+    let imagenBase64 = null;
+    if(imgInput){
+        try{
+            imagenBase64 = await archivoABase64(imgInput);
+        } catch(err){
+            console.error(err);
+            mostrarToast('No se pudo procesar la imagen.', 'error');
+            return;
+        }
+    }
+
+    const nuevoProducto = {
+        nombre,
+        descripcion: desc || null,
+        precio,
+        categoria: categoria || null,
+        imagen: imagenBase64,
+        stock
+    };
+
+    const { error } = await db.from('productos').insert([nuevoProducto]);
+
+    if(error){
+        console.error('Error al guardar producto:', error);
+        mostrarToast('No se pudo guardar: ' + error.message, 'error');
+        return;
+    }
+
+    mostrarToast('Producto agregado ✔', 'success');
+    limpiarFormProducto();
+    cerrarFormProducto();
+    cargarProductos();
+}
+
+/* =========================================================================
+   6. ELIMINAR PRODUCTO
+   ========================================================================= */
+async function eliminarProducto(id){
+    if(!confirm('¿Eliminar este producto de la tienda?')) return;
+
+    const { error } = await db.from('productos').delete().eq('id', id);
+
+    if(error){
+        console.error('Error al eliminar:', error);
+        mostrarToast('No se pudo eliminar: ' + error.message, 'error');
+        return;
+    }
+
+    mostrarToast('Producto eliminado.', 'info');
+    cargarProductos();
+}
+
+/* =========================================================================
+   7. COMPRAR PRODUCTO (simulado)
    ========================================================================= */
 function comprarProducto(id){
     const p = productosCargados.find(x => x.id === id);
@@ -118,17 +222,25 @@ function comprarProducto(id){
 }
 
 /* =========================================================================
-   5. FILTRO POR CATEGORÍA (opcional)
-   -------------------------------------------------------------------------
-   Si agregas un <select id="filtroCategoria"> en el HTML, se activa solo.
+   8. PREVIEW DE IMAGEN
    ========================================================================= */
 document.addEventListener('change', (e) => {
-    if(e.target.id !== 'filtroCategoria') return;
+    if(e.target.id !== 'pImagen') return;
+    const archivo = e.target.files[0];
 
-    const cat = e.target.value;
-    const filtrados = (cat === 'Todos' || !cat)
-        ? productosCargados
-        : productosCargados.filter(p => p.categoria === cat);
+    let preview = document.getElementById('pPreview');
+    if(!archivo){
+        if(preview) preview.remove();
+        return;
+    }
 
-    renderizarProductos(filtrados);
+    archivoABase64(archivo).then(b64 => {
+        if(!preview){
+            preview = document.createElement('img');
+            preview.id = 'pPreview';
+            preview.style.cssText = 'max-height:100px;border-radius:8px;margin-top:.5rem;';
+            e.target.parentElement.appendChild(preview);
+        }
+        preview.src = b64;
+    });
 });
