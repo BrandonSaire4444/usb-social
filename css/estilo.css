@@ -153,7 +153,7 @@ body{
 .badge-adoptado  { background-color: var(--usb-rojo); }
 
 /* =========================================================================
-   FEED (publicaciones)
+   FEED (publicaciones con reacciones y comentarios)
    ========================================================================= */
 .pub-card{
     background: #fff;
@@ -161,24 +161,169 @@ body{
     padding: 1rem;
     margin-bottom: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
 }
-.pub-card img{
+
+/* Solo las imágenes "grandes" de la publicación (no avatares) */
+.pub-card > img,
+.pub-card .img-publicacion{
     border-radius: 10px;
     max-height: 400px;
     object-fit: cover;
     width: 100%;
+    max-width: 100%;
+    display: block;
 }
+
+/* Avatar pequeño del feed */
 .pub-avatar{
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: 42px !important;
+    height: 42px !important;
+    max-width: 42px !important;
+    max-height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 50% !important;
     background: var(--usb-azul);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
+    font-size: 1rem;
     flex-shrink: 0;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+/* Header de la publicación */
+.pub-card .d-flex.align-items-center.gap-2.mb-2{
+    align-items: center;
+}
+.pub-card .d-flex.align-items-center.gap-2.mb-2 > div:first-child{
+    flex-shrink: 0;
+}
+
+/* Botones de acción (Me gusta / Comentar) */
+.pub-card .btn-link{
+    color: #555 !important;
+    font-weight: 600;
+    font-size: .95rem;
+    text-decoration: none;
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    border: none !important;
+    text-align: center;
+    transition: background .15s;
+}
+.pub-card .btn-link:hover{
+    background: #f0f2f5;
+    color: var(--usb-azul) !important;
+}
+.pub-card .btn-link.fw-bold{
+    color: var(--usb-azul) !important;
+}
+
+/* Botón eliminar 🗑️ compacto */
+.pub-card .btn-outline-danger.btn-sm{
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Caja de comentarios */
+.pub-card [id^="caja-comentario-"]{
+    border-top: 1px solid #e9ecef;
+    padding-top: .75rem;
+    margin-top: .5rem;
+}
+
+/* Input de comentario */
+.pub-card [id^="input-comentario-"]{
+    border-radius: 22px;
+    background: #f0f2f5;
+    border: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.pub-card [id^="input-comentario-"]:focus{
+    background: #fff;
+    box-shadow: 0 0 0 2px var(--usb-azul);
+}
+
+/* Comentarios individuales */
+.comentario-item{
+    display: flex;
+    gap: .5rem;
+    margin-bottom: .5rem;
+}
+.comentario-burbuja{
+    background: #f0f2f5;
+    border-radius: 14px;
+    padding: .4rem .8rem;
+    flex-grow: 1;
+}
+.comentario-burbuja strong{
+    font-size: .88rem;
+    display: block;
+}
+.comentario-burbuja p{
+    margin: 0;
+    font-size: .88rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Resumen de reacciones */
+.pub-card .resumen-reacciones{
+    font-size: .9rem;
+    color: #666;
+    padding: 0 .5rem .25rem;
+}
+.pub-card .resumen-reacciones span{
+    font-size: 1rem;
+    margin-right: 2px;
+}
+
+/* Separador entre publicaciones */
+.pub-card hr{
+    border: 0;
+    border-top: 1px solid #e9ecef;
+    margin: .4rem 0;
+    opacity: .6;
+}
+
+/* Nombre de usuario en el feed */
+.pub-card .flex-grow-1 > div:first-child{
+    line-height: 1.2;
+}
+.pub-card .flex-grow-1 small{
+    display: block;
+    line-height: 1.1;
+    font-size: .78rem;
+}
+
+/* =========================================================================
+   AJUSTES FINOS DEL FEED
+   ========================================================================= */
+#feedLista{
+    overflow: hidden;
+}
+#feedLista img{
+    max-width: 100%;
+}
+
+/* Sidebar de estudiantes */
+#listaEstudiantes{
+    max-height: 400px;
+    overflow-y: auto;
+}
+#listaEstudiantes strong{
+    font-size: .9rem;
 }
 
 /* =========================================================================
@@ -187,6 +332,8 @@ body{
 .perfil-cover{
     height: 180px;
     background: linear-gradient(135deg, var(--usb-azul), var(--usb-rojo));
+    background-size: cover;
+    background-position: center;
 }
 .perfil-avatar-grande{
     width: 120px;
@@ -202,6 +349,7 @@ body{
     font-weight: 700;
     margin-top: -60px;
     box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    overflow: hidden;
 }
 
 /* =========================================================================
@@ -287,6 +435,105 @@ body{
     overflow-y: auto;
     font-size: .9rem;
 }
+/* =========================================================================
+   REACCIONES ESTILO FACEBOOK
+   ========================================================================= */
+
+/* Contenedor del botón con panel flotante */
+.reaccion-wrapper{
+    position: relative;
+    display: inline-block;
+    flex: 1;
+    text-align: center;
+    /* Aseguramos que el padding del botón forme parte del área hover */
+    padding: 0;
+    margin: 0;
+}
+
+/* PUENTE INVISIBLE: cubre el hueco entre el botón y el panel */
+.reaccion-wrapper::before{
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 20px;   /* cubre el hueco */
+    pointer-events: auto;
+    z-index: 99;
+}
+
+/* El panel de emojis */
+.panel-reacciones{
+    position: absolute;
+    bottom: calc(100% + 4px);   /* se pega bien al botón */
+    left: 50%;
+    transform: translateX(-50%) scale(.85);
+    transform-origin: bottom center;
+    background: #fff;
+    border-radius: 9999px;
+    padding: .4rem .7rem;
+    box-shadow: 0 6px 24px rgba(0,0,0,.2);
+    display: flex;
+    gap: .15rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease, transform .15s ease;
+    z-index: 100;
+    white-space: nowrap;
+}
+
+/* Al pasar el mouse por CUALQUIER parte del wrapper (incluido el puente) */
+.reaccion-wrapper:hover .panel-reacciones,
+.reaccion-wrapper:focus-within .panel-reacciones{
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Cada emoji del panel */
+.panel-reacciones button{
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    padding: .15rem .3rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform .15s ease;
+    line-height: 1;
+}
+.panel-reacciones button:hover{
+    transform: scale(1.4) translateY(-4px);
+}
+
+/* Botón principal "Me gusta" */
+.btn-reaccion{
+    color: #555 !important;
+    font-weight: 600;
+    font-size: .95rem;
+    text-decoration: none;
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    border: none !important;
+    background: transparent;
+    width: 100%;
+    transition: background .15s;
+}
+.btn-reaccion:hover{
+    background: #f0f2f5;
+    color: var(--usb-azul) !important;
+}
+.btn-reaccion.activa{
+    color: var(--usb-azul) !important;
+    font-weight: 700;
+}
+
+/* Los emojis del resumen */
+.resumen-reacciones .emoji-resumen{
+    font-size: 1rem;
+    margin-right: 1px;
+    display: inline-block;
+}
 
 /* =========================================================================
    ESTADO VACÍO
@@ -324,4 +571,12 @@ footer.footer-usb strong{ color: var(--usb-amarillo); }
     }
     .calc-display{ font-size: 1.6rem; }
     .franja-titulo h5{ font-size: 1rem; }
+}
+/* En pantallas táctiles, mantener el panel visible al hacer tap */
+@media (hover: none){
+    .reaccion-wrapper:active .panel-reacciones{
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(-50%) scale(1);
+    }
 }

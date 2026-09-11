@@ -41,6 +41,7 @@
         <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('mascotas');return false;"><i class="bi bi-heart"></i> Mascotas</a></li>
         <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('tienda');return false;"><i class="bi bi-shop"></i> Tienda</a></li>
         <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('calculadora');return false;"><i class="bi bi-calculator"></i> Calculadora</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarSeccion('historial');return false;"><i class="bi bi-clock-history"></i> Historial</a></li>
         <li class="nav-item ms-lg-3 d-flex align-items-center">
           <span id="navUsuario" class="text-white small me-2"></span>
           <button class="btn btn-sm btn-usb-amarillo" onclick="cerrarSesion()">
@@ -147,18 +148,45 @@
     <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-person-circle"></i> Mi Perfil</h5></div>
 
     <div class="card mb-4 overflow-hidden">
-      <div class="perfil-cover"></div>
+
+      <!-- Portada -->
+      <div class="perfil-cover position-relative"
+           style="cursor:pointer;"
+           onclick="document.getElementById('inputPortada').click();">
+        <input type="file" id="inputPortada" accept="image/*"
+               style="display:none;" onchange="subirPortada(this)">
+        <button class="btn btn-sm btn-light position-absolute"
+                style="bottom:10px;right:10px;" type="button">
+          <i class="bi bi-camera"></i> Cambiar portada
+        </button>
+      </div>
+
+      <!-- Datos del perfil -->
       <div class="p-4">
         <div class="d-flex align-items-end gap-3 flex-wrap">
-          <div id="perfilAvatar" class="perfil-avatar-grande">U</div>
+
+          <!-- Avatar con botón de cámara -->
+          <div class="position-relative">
+            <div id="perfilAvatar" class="perfil-avatar-grande">U</div>
+            <input type="file" id="inputAvatar" accept="image/*"
+                   style="display:none;" onchange="subirAvatar(this)">
+            <button class="btn btn-sm btn-usb-amarillo position-absolute"
+                    style="bottom:0;right:0;border-radius:50%;" type="button"
+                    onclick="document.getElementById('inputAvatar').click();">
+              <i class="bi bi-camera-fill"></i>
+            </button>
+          </div>
+
           <div>
             <h4 id="perfilNombre" class="mb-0">—</h4>
             <small class="text-muted" id="perfilCarrera">—</small>
           </div>
+
           <button class="btn btn-usb-azul btn-sm ms-auto" onclick="abrirEditarPerfil()">
             <i class="bi bi-pencil"></i> Editar
           </button>
         </div>
+
         <hr>
         <p id="perfilBio" class="text-muted mb-2">Sin biografía.</p>
         <p class="mb-1"><i class="bi bi-envelope"></i> <span id="perfilEmail">—</span></p>
@@ -234,7 +262,40 @@
 
   <!-- ============ TIENDA ============ -->
   <section id="seccion-tienda" class="seccion">
-    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-shop"></i> Tienda Estudiantil USB</h5></div>
+    <div class="franja-titulo d-flex justify-content-between align-items-center flex-wrap">
+      <h5 class="m-0"><i class="bi bi-shop"></i> Tienda Estudiantil USB</h5>
+      <button class="btn btn-usb-amarillo btn-sm mt-2 mt-md-0" onclick="abrirFormProducto()">
+        <i class="bi bi-plus-circle"></i> Nuevo producto
+      </button>
+    </div>
+
+    <div class="card p-3 mb-4 d-none" id="formProductoCard">
+      <h6 style="color:var(--usb-azul);">Registrar producto</h6>
+      <div class="row g-2">
+        <div class="col-md-6"><input id="pNombre" class="form-control" placeholder="Nombre del producto"></div>
+        <div class="col-md-3"><input id="pPrecio" type="number" step="0.01" min="0" class="form-control" placeholder="Precio (Bs.)"></div>
+        <div class="col-md-3"><input id="pStock" type="number" min="0" class="form-control" placeholder="Stock"></div>
+        <div class="col-md-4">
+          <select id="pCategoria" class="form-select">
+            <option value="">Categoría...</option>
+            <option>Polera</option>
+            <option>Deportivo</option>
+            <option>Accesorio</option>
+            <option>Papelería</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="col-md-8"><input id="pImagen" type="file" accept="image/*" class="form-control"></div>
+        <div class="col-12"><textarea id="pDesc" class="form-control" rows="2" placeholder="Descripción del producto"></textarea></div>
+        <div class="col-12 text-end">
+          <button class="btn btn-outline-secondary btn-sm" onclick="cerrarFormProducto()">Cancelar</button>
+          <button class="btn btn-usb-rojo btn-sm" onclick="guardarProducto()">
+            <i class="bi bi-save"></i> Guardar producto
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="galeriaProductos" class="row g-4"></div>
   </section>
 
@@ -287,6 +348,20 @@
     </div>
   </section>
 
+  <!-- ============ HISTORIAL ============ -->
+  <section id="seccion-historial" class="seccion">
+    <div class="franja-titulo d-flex justify-content-between align-items-center flex-wrap">
+      <h5 class="m-0"><i class="bi bi-clock-history"></i> Mi Historial de Actividad</h5>
+      <button class="btn btn-outline-danger btn-sm mt-2 mt-md-0" onclick="limpiarHistorial()">
+        <i class="bi bi-trash"></i> Limpiar historial
+      </button>
+    </div>
+
+    <div class="card">
+      <div id="listaHistorial" class="list-group list-group-flush"></div>
+    </div>
+  </section>
+
 </div>
 
 <!-- ======================= MODAL EDICIÓN PERFIL ======================= -->
@@ -314,7 +389,7 @@
 <footer class="footer-usb text-center">
   <div class="container">
     <p class="mb-1">Universidad Salesiana de Bolivia — Materia: Programación Avanzada</p>
-    <p class="mb-0">Desarrollado por: <strong>Ing. MACRO</strong> (Ingeniero Miguel Angel Cruz Ramos)</p>
+    <p class="mb-0">Desarrollado por: <strong>Brandon Alan Saire Condori</strong></p>
   </div>
 </footer>
 
@@ -331,6 +406,7 @@
 <script src="js/mascotas.js"></script>
 <script src="js/feed.js"></script>
 <script src="js/tienda.js"></script>
+<script src="js/historial.js"></script>
 <script src="js/calculadora.js"></script>
 </body>
 </html>

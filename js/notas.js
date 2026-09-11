@@ -93,7 +93,9 @@ async function guardarNota(){
     document.getElementById('notaValor').value   = '';
 
     mostrarToast('Nota guardada ✔', 'success');
+    registrarHistorial('Registró una nota', 'Notas', `${materia}: ${nota}`);
     cargarNotas();
+    
 }
 
 /* =========================================================================

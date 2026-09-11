@@ -40,17 +40,25 @@ function mostrarSeccion(id){
     const sec = document.getElementById('seccion-' + id);
     if(sec) sec.classList.add('activa');
 
-    // Cargar datos perezosos según la sección visitada
-    if(id === 'notas')    cargarNotas();
-    if(id === 'mascotas') cargarMascotas();
-    if(id === 'tienda')   cargarProductos();
-    if(id === 'perfil')   cargarReportes();
-    if(id === 'feed')     cargarFeed();
+    if(id === 'notas')     cargarNotas();
+    if(id === 'mascotas')  cargarMascotas();
+    if(id === 'tienda')    cargarProductos();
+    if(id === 'perfil')    cargarReportes();
+    if(id === 'feed')      cargarFeed();
+    if(id === 'historial') cargarHistorial();
 
-    // Resaltar el link activo en el navbar
     document.querySelectorAll('#menuUSB .nav-link').forEach(l => l.classList.remove('active'));
-
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 📝 Registrar en historial
+    const nombres = {
+        feed: 'Feed', perfil: 'Mi Perfil', notas: 'Notas',
+        mascotas: 'Mascotas', tienda: 'Tienda',
+        calculadora: 'Calculadora', historial: 'Historial'
+    };
+    if(usuarioActual && nombres[id]){
+        registrarHistorial(`Visitó ${nombres[id]}`, nombres[id]);
+    }
 }
 
 /* ---------- 3.2 Hash de contraseña (SHA-256 + salt) ---------- */
@@ -119,6 +127,7 @@ function mostrarToast(mensaje, tipo = 'info'){
 
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2200);
+   
 }
 
 /* ---------- 3.7 Formatear fecha ---------- */
@@ -136,6 +145,7 @@ function guardarSesion(){
     if(usuarioActual){
         localStorage.setItem('usbSesion', JSON.stringify(usuarioActual));
     }
+    
 }
 function leerSesion(){
     try{

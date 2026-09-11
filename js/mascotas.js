@@ -152,6 +152,7 @@ async function guardarMascota(){
     }
 
     mostrarToast('Mascota registrada ✔', 'success');
+    registrarHistorial('Registró una mascota', 'Mascotas', nombre);
     limpiarFormMascota();
     cerrarFormMascota();
     cargarMascotas();
