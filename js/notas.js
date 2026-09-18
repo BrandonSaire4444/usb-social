@@ -51,7 +51,7 @@ async function cargarNotas(){
     if(!usuarioActual) return;
 
     document.getElementById('colAccionesNotas').textContent =
-        usuarioActual.rol === 'docente' ? 'Nota' : '';
+        usuarioActual.rol === 'docente' ? 'Acciones' : '';
 
     await poblarSelectorParalelos();
 }
@@ -111,9 +111,12 @@ async function cargarVistaDocente(paraleloId, tbody){
                     <input type="number" min="0" max="100" class="form-control form-control-sm"
                            id="nota-${est.id}" value="${notaActual}" placeholder="0-100">
                 </td>
-                <td class="text-end">
-                    <button class="btn btn-sm btn-usb-rojo" onclick="guardarNotaEstudiante(${paraleloId}, '${est.id}')">
+                                <td class="text-end">
+                    <button class="btn btn-sm btn-usb-rojo me-1" onclick="guardarNotaEstudiante(${paraleloId}, '${est.id}')">
                         <i class="bi bi-save"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarEstudianteDelParalelo(${paraleloId}, '${est.id}')">
+                        <i class="bi bi-trash"></i>
                     </button>
                 </td>
             </tr>`;
@@ -172,4 +175,34 @@ async function guardarNotaEstudiante(paraleloId, estudianteId){
 
     mostrarToast('Nota guardada ✔', 'success');
     registrarHistorial('Registró/actualizó una nota', 'Notas');
+}
+/* =========================================================================
+   5. ELIMINAR ESTUDIANTE DE UN PARALELO (solo docente)
+   -------------------------------------------------------------------------
+   Borra su nota en ese paralelo (si tenía) y luego su inscripción.
+   ========================================================================= */
+async function eliminarEstudianteDelParalelo(paraleloId, estudianteId){
+    if(!confirm('¿Eliminar a este estudiante del paralelo? Se perderá su nota registrada aquí.')) return;
+
+    // Primero borramos su nota en este paralelo, si la tenía
+    await db.from('notas')
+        .delete()
+        .eq('paralelo_id', paraleloId)
+        .eq('estudiante_id', estudianteId);
+
+    // Luego borramos su inscripción al paralelo
+    const { error } = await db.from('inscripciones')
+        .delete()
+        .eq('paralelo_id', paraleloId)
+        .eq('estudiante_id', estudianteId);
+
+    if(error){
+        console.error(error);
+        mostrarToast('No se pudo eliminar al estudiante: ' + error.message, 'error');
+        return;
+    }
+
+    mostrarToast('Estudiante eliminado del paralelo.', 'info');
+    registrarHistorial('Eliminó a un estudiante de un paralelo', 'Notas');
+    await cargarNotasDelParalelo();
 }
