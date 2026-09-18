@@ -1,25 +1,15 @@
 /* =========================================================================
    USB SOCIAL — Módulo de Autenticación
-   -------------------------------------------------------------------------
-   Responsabilidades:
-     - Registro de nuevo estudiante (insert en tabla "perfiles")
-     - Inicio de sesión (select con email + password_hash)
-     - Cierre de sesión (limpiar localStorage)
-     - Auto-login al recargar la página (leer localStorage)
-     - Alternar entre pantalla de login y pantalla de la app
    ========================================================================= */
 
-/* =========================================================================
-   1. REGISTRO
-   ========================================================================= */
 async function registrarse(){
     const nombre   = document.getElementById('regNombre').value.trim();
     const email    = document.getElementById('regEmail').value.trim().toLowerCase();
     const pass     = document.getElementById('regPass').value;
     const carrera  = document.getElementById('regCarrera').value.trim();
     const semestre = Number(document.getElementById('regSemestre').value) || null;
+    const rol      = document.getElementById('regRol').value; // 'estudiante' o 'docente'
 
-    // Validaciones básicas
     if(!nombre || !email || !pass){
         mostrarToast('Completa nombre, correo y contraseña.', 'warning');
         return;
@@ -41,7 +31,8 @@ async function registrarse(){
             email,
             password_hash: passHash,
             carrera: carrera || null,
-            semestre
+            semestre,
+            rol
         }])
         .select()
         .single();
@@ -62,9 +53,6 @@ async function registrarse(){
     entrarApp();
 }
 
-/* =========================================================================
-   2. INICIO DE SESIÓN
-   ========================================================================= */
 async function iniciarSesion(){
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     const pass  = document.getElementById('loginPass').value;
@@ -98,9 +86,6 @@ async function iniciarSesion(){
     entrarApp();
 }
 
-/* =========================================================================
-   3. CERRAR SESIÓN
-   ========================================================================= */
 function cerrarSesion(){
     if(!confirm('¿Seguro que quieres cerrar sesión?')) return;
 
@@ -111,26 +96,25 @@ function cerrarSesion(){
     document.getElementById('pantallaApp').classList.add('d-none');
     document.getElementById('navbarApp').classList.add('d-none');
 
-    // Limpiar campos del formulario
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPass').value  = '';
 
     mostrarToast('Sesión cerrada.', 'info');
 }
 
-/* =========================================================================
-   4. ENTRAR A LA APP (cambiar pantalla + cargar datos iniciales)
-   ========================================================================= */
 function entrarApp(){
     document.getElementById('pantallaAuth').classList.add('d-none');
     document.getElementById('pantallaApp').classList.remove('d-none');
     document.getElementById('navbarApp').classList.remove('d-none');
 
-    // Mostrar nombre del usuario en el navbar
     const navUsuario = document.getElementById('navUsuario');
-    navUsuario.textContent = usuarioActual ? usuarioActual.nombre_completo : '';
+    if(usuarioActual){
+        const etiquetaRol = usuarioActual.rol === 'docente' ? '👨‍🏫 Docente' : '🎓 Estudiante';
+        navUsuario.textContent = `${usuarioActual.nombre_completo} · ${etiquetaRol}`;
+    } else {
+        navUsuario.textContent = '';
+    }
 
-    // Refrescar datos de la sección visible
     cargarPerfil();
     cargarFeed();
     actualizarListaEstudiantes();
@@ -138,14 +122,10 @@ function entrarApp(){
     mostrarSeccion('feed');
 }
 
-/* =========================================================================
-   5. AUTO-LOGIN (al recargar la página)
-   ========================================================================= */
 async function verificarSesion(){
     const sesionGuardada = leerSesion();
     if(!sesionGuardada) return;
 
-    // Verificamos que el perfil siga existiendo en Supabase
     const { data, error } = await db.from('perfiles')
         .select('*')
         .eq('id', sesionGuardada.id)
@@ -160,23 +140,12 @@ async function verificarSesion(){
     entrarApp();
 }
 
-/* =========================================================================
-   6. ARRANQUE
-   -------------------------------------------------------------------------
-   Al cargar la página:
-     - Si hay sesión guardada → entrar directo a la app
-     - Si no, quedarse en la pantalla de login
-   ========================================================================= */
 (async function initAuth(){
-    // Esperamos un instante a que Bootstrap y el DOM estén listos
     window.addEventListener('DOMContentLoaded', async () => {
         await verificarSesion();
     });
 })();
 
-/* =========================================================================
-   7. ATAJOS DE TECLADO (Enter en login/registro)
-   ========================================================================= */
 document.addEventListener('keydown', (e) => {
     if(e.key !== 'Enter') return;
 

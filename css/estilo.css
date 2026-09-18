@@ -558,7 +558,25 @@ footer.footer-usb{
     margin-top: 3rem;
 }
 footer.footer-usb strong{ color: var(--usb-amarillo); }
+/* ---------- Footer siempre al fondo, aunque haya poco contenido ---------- */
+html, body {
+    min-height: 100%;
+}
 
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#pantallaAuth,
+#pantallaApp {
+    flex: 1 0 auto;
+}
+
+footer.footer-usb {
+    margin-top: auto;
+}
 /* =========================================================================
    RESPONSIVE
    ========================================================================= */

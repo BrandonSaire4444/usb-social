@@ -90,7 +90,11 @@
             <input type="email" id="regEmail" class="form-control mb-2" placeholder="Correo institucional">
             <input type="password" id="regPass" class="form-control mb-2" placeholder="Contraseña">
             <input type="text" id="regCarrera" class="form-control mb-2" placeholder="Carrera (Ej. Ing. de Sistemas)">
-            <input type="number" id="regSemestre" class="form-control mb-3" placeholder="Semestre" min="1" max="10">
+            <input type="number" id="regSemestre" class="form-control mb-2" placeholder="Semestre" min="1" max="10">
+            <select id="regRol" class="form-select mb-3">
+              <option value="estudiante" selected>Soy Estudiante</option>
+              <option value="docente">Soy Docente</option>
+            </select>
             <button class="btn btn-usb-azul w-100" onclick="registrarse()">
               <i class="bi bi-person-plus"></i> Crear cuenta
             </button>
@@ -194,33 +198,57 @@
       </div>
     </div>
 
-    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-bar-chart"></i> Mis Reportes Académicos</h5></div>
-    <div class="row g-3 mb-4" id="reporteCards"></div>
+        <!-- ============ DOCENTE: gestión de sus paralelos ============ -->
+    <div id="bloqueDocenteCursos" class="d-none">
+      <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-mortarboard"></i> Mis Paralelos</h5></div>
+
+      <div class="card p-3 mb-3">
+        <h6 style="color:var(--usb-azul);"><i class="bi bi-plus-circle"></i> Crear nuevo paralelo</h6>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input id="cursoMateria" class="form-control" placeholder="Materia (Ej: Bases de Datos)" list="listaMateriasExistentes">
+            <datalist id="listaMateriasExistentes"></datalist>
+          </div>
+          <div class="col-md-2"><input id="cursoCodigo" class="form-control" placeholder="Paralelo (Ej: A, 1, 2)"></div>
+          <div class="col-md-3"><input id="cursoHorario" class="form-control" placeholder="Horario (Ej: Lun-Mie 8:00-10:00)"></div>
+          <div class="col-md-2"><input id="cursoAula" class="form-control" placeholder="Aula"></div>
+          <div class="col-md-1 d-grid"><button class="btn btn-usb-rojo" onclick="crearParalelo()"><i class="bi bi-save"></i></button></div>
+        </div>
+      </div>
+
+      <div id="listaMisParalelos" class="row g-3 mb-4"></div>
+    </div>
+
+    <!-- ============ ESTUDIANTE: inscripción a paralelos ============ -->
+    <div id="bloqueEstudianteCursos" class="d-none">
+      <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-journal-check"></i> Mis Materias Inscritas</h5></div>
+      <div id="listaMisInscripciones" class="row g-3 mb-4"></div>
+
+      <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-plus-circle"></i> Materias Disponibles</h5></div>
+      <div id="listaParalelosDisponibles" class="row g-3 mb-4"></div>
+    </div>
   </section>
 
   <!-- ============ NOTAS ============ -->
-  <section id="seccion-notas" class="seccion">
-    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-journal-text"></i> Registro de Notas</h5></div>
+   <section id="seccion-notas" class="seccion">
+    <div class="franja-titulo"><h5 class="m-0"><i class="bi bi-journal-text"></i> Notas por Paralelo</h5></div>
 
     <div class="card p-3 mb-3">
-      <h6 style="color:var(--usb-azul);"><i class="bi bi-plus-circle"></i> Nueva nota</h6>
-      <div class="row g-2">
-        <div class="col-md-5"><input id="notaNombre" class="form-control" placeholder="Nombre del estudiante"></div>
-        <div class="col-md-4"><input id="notaMateria" class="form-control" placeholder="Materia"></div>
-        <div class="col-md-2"><input id="notaValor" type="number" step="1" min="0" max="100" class="form-control" placeholder="Nota"></div>
-        <div class="col-md-1 d-grid">
-          <button class="btn btn-usb-rojo" onclick="guardarNota()"><i class="bi bi-save"></i></button>
-        </div>
-      </div>
+      <label class="form-label fw-bold mb-1">Selecciona un paralelo</label>
+      <select id="selectorParalelo" class="form-select" onchange="cargarNotasDelParalelo()">
+        <option value="">Cargando…</option>
+      </select>
     </div>
 
     <div class="card">
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
           <thead class="tabla-header-usb">
-            <tr><th>ID</th><th>Nombre</th><th>Materia</th><th>Nota</th><th></th></tr>
+            <tr><th>Estudiante</th><th>Nota</th><th id="colAccionesNotas"></th></tr>
           </thead>
-          <tbody id="tablaNotas"></tbody>
+          <tbody id="tablaNotas">
+            <tr><td colspan="3" class="text-center text-muted py-4">Selecciona un paralelo arriba.</td></tr>
+          </tbody>
         </table>
       </div>
     </div>

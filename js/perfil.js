@@ -1,10 +1,5 @@
-    /* =========================================================================
-   USB SOCIAL — Módulo de Perfil
-   -------------------------------------------------------------------------
-   Responsabilidades:
-     - Mostrar los datos del usuario logueado en la sección "Mi Perfil"
-     - Editar perfil (nombre, carrera, semestre, bio, avatar)
-     - Generar reportes académicos del estudiante
+/* =========================================================================
+   USB SOCIAL — Módulo de Perfil (+ gestión de Paralelos e Inscripciones)
    ========================================================================= */
 
 /* =========================================================================
@@ -19,7 +14,6 @@ function cargarPerfil(){
     document.getElementById('perfilEmail').textContent     = usuarioActual.email || '—';
     document.getElementById('perfilSemestre').textContent  = usuarioActual.semestre || '—';
 
-    // Avatar
     const avatarEl = document.getElementById('perfilAvatar');
     if(usuarioActual.avatar){
         avatarEl.innerHTML = `<img src="${usuarioActual.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar">`;
@@ -28,7 +22,6 @@ function cargarPerfil(){
         avatarEl.innerHTML = inicial;
     }
 
-    // Portada
     const cover = document.querySelector('.perfil-cover');
     if(cover && usuarioActual.portada){
         cover.style.backgroundImage = `url('${usuarioActual.portada}')`;
@@ -38,7 +31,7 @@ function cargarPerfil(){
 }
 
 /* =========================================================================
-   2. ABRIR MODAL DE EDICIÓN
+   2. EDITAR PERFIL
    ========================================================================= */
 function abrirEditarPerfil(){
     if(!usuarioActual) return;
@@ -52,9 +45,6 @@ function abrirEditarPerfil(){
     modal.show();
 }
 
-/* =========================================================================
-   3. GUARDAR CAMBIOS DEL PERFIL
-   ========================================================================= */
 async function guardarPerfil(){
     if(!usuarioActual) return;
 
@@ -87,133 +77,266 @@ async function guardarPerfil(){
 
     usuarioActual = data;
     guardarSesion();
-
-    // Refrescar UI
     cargarPerfil();
     document.getElementById('navUsuario').textContent = usuarioActual.nombre_completo;
-
-    // Cerrar modal
     bootstrap.Modal.getInstance(document.getElementById('modalEditarPerfil')).hide();
-
     mostrarToast('Perfil actualizado ✔', 'success');
 }
 
 /* =========================================================================
-   4. REPORTES ACADÉMICOS
+   3. SECCIÓN DE CURSOS (reemplaza a los antiguos "Reportes Académicos")
    -------------------------------------------------------------------------
-   Calcula estadísticas del estudiante actual:
-     - Total de notas registradas
-     - Promedio general
-     - Nota máxima y mínima
-     - Materia con mejor nota
+   Muestra un bloque distinto segun el rol del usuario logueado.
    ========================================================================= */
-async function cargarReportes(){
+async function cargarSeccionCursos(){
     if(!usuarioActual) return;
 
-    const contenedor = document.getElementById('reporteCards');
-    contenedor.innerHTML = `
-        <div class="col-12 text-center text-muted py-4">
-            <i class="bi bi-hourglass-split"></i> Calculando reportes…
-        </div>`;
+    const bloqueDocente    = document.getElementById('bloqueDocenteCursos');
+    const bloqueEstudiante = document.getElementById('bloqueEstudianteCursos');
 
-    // Traemos las notas donde el nombre coincida con el del estudiante
-    // (si no tienes perfil_id aún, esto funciona por nombre)
-    const { data, error } = await db.from('estudiantes')
-        .select('nombre, materia, nota')
-        .eq('nombre', usuarioActual.nombre_completo);
+    if(usuarioActual.rol === 'docente'){
+        bloqueDocente.classList.remove('d-none');
+        bloqueEstudiante.classList.add('d-none');
+        await cargarListaMateriasExistentes();
+        await cargarMisParalelos();
+    } else {
+        bloqueDocente.classList.add('d-none');
+        bloqueEstudiante.classList.remove('d-none');
+        await cargarMisInscripciones();
+        await cargarParalelosDisponibles();
+    }
+}
+
+/* ---------- 3.1 Autocompletar materias ya existentes ---------- */
+async function cargarListaMateriasExistentes(){
+    const { data } = await db.from('materias').select('nombre').order('nombre');
+    const datalist = document.getElementById('listaMateriasExistentes');
+    if(datalist && data){
+        datalist.innerHTML = data.map(m => `<option value="${escapeHtml(m.nombre)}"></option>`).join('');
+    }
+}
+
+/* ---------- 3.2 DOCENTE: crear un paralelo nuevo ---------- */
+async function crearParalelo(){
+    const nombreMateria = document.getElementById('cursoMateria').value.trim();
+    const codigo        = document.getElementById('cursoCodigo').value.trim();
+    const horario       = document.getElementById('cursoHorario').value.trim();
+    const aula          = document.getElementById('cursoAula').value.trim();
+
+    if(!nombreMateria || !codigo){
+        mostrarToast('Ingresa al menos la materia y el paralelo.', 'warning');
+        return;
+    }
+
+    // Busca la materia (sin importar mayúsculas/minúsculas); si no existe, la crea
+    let materiaId;
+    const { data: materiaExistente } = await db.from('materias')
+        .select('id')
+        .ilike('nombre', nombreMateria)
+        .maybeSingle();
+
+    if(materiaExistente){
+        materiaId = materiaExistente.id;
+    } else {
+        const { data: nuevaMateria, error: errorMateria } = await db.from('materias')
+            .insert([{ nombre: nombreMateria }])
+            .select()
+            .single();
+        if(errorMateria){
+            console.error(errorMateria);
+            mostrarToast('No se pudo crear la materia: ' + errorMateria.message, 'error');
+            return;
+        }
+        materiaId = nuevaMateria.id;
+    }
+
+    const { error: errorParalelo } = await db.from('paralelos')
+        .insert([{
+            materia_id: materiaId,
+            codigo,
+            docente_id: usuarioActual.id,
+            horario: horario || null,
+            aula: aula || null
+        }]);
+
+    if(errorParalelo){
+        console.error(errorParalelo);
+        if(errorParalelo.code === '23505'){
+            mostrarToast('Ya existe un paralelo con ese código para esa materia.', 'error');
+        } else {
+            mostrarToast('No se pudo crear el paralelo: ' + errorParalelo.message, 'error');
+        }
+        return;
+    }
+
+    document.getElementById('cursoMateria').value = '';
+    document.getElementById('cursoCodigo').value  = '';
+    document.getElementById('cursoHorario').value = '';
+    document.getElementById('cursoAula').value    = '';
+
+    mostrarToast('Paralelo creado ✔', 'success');
+    registrarHistorial('Creó un paralelo', 'Perfil', `${nombreMateria} - ${codigo}`);
+    await cargarListaMateriasExistentes();
+    await cargarMisParalelos();
+}
+
+/* ---------- 3.3 DOCENTE: obtener y listar sus paralelos ---------- */
+async function obtenerParalelosDocente(docenteId){
+    const { data, error } = await db.from('paralelos')
+        .select('id, codigo, horario, aula, materias(nombre)')
+        .eq('docente_id', docenteId)
+        .order('id', { ascending: false });
+    if(error){ console.error(error); return []; }
+    return data;
+}
+
+async function cargarMisParalelos(){
+    const cont = document.getElementById('listaMisParalelos');
+    cont.innerHTML = `<div class="col-12 text-center text-muted py-3"><i class="bi bi-hourglass-split"></i> Cargando…</div>`;
+
+    const paralelos = await obtenerParalelosDocente(usuarioActual.id);
+
+    if(paralelos.length === 0){
+        cont.innerHTML = `<div class="col-12"><div class="empty-state"><i class="bi bi-mortarboard"></i><p class="mt-2">Aún no has creado ningún paralelo.</p></div></div>`;
+        return;
+    }
+
+    const conteos = await Promise.all(paralelos.map(p =>
+        db.from('inscripciones').select('id', { count: 'exact', head: true }).eq('paralelo_id', p.id)
+    ));
+
+    cont.innerHTML = paralelos.map((p, i) => `
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-3 h-100">
+                <h6 class="mb-1" style="color:var(--usb-azul);">${escapeHtml(p.materias?.nombre || '—')} — Paralelo ${escapeHtml(p.codigo)}</h6>
+                <p class="small text-muted mb-1"><i class="bi bi-clock"></i> ${escapeHtml(p.horario || 'Sin horario')}</p>
+                <p class="small text-muted mb-2"><i class="bi bi-door-open"></i> ${escapeHtml(p.aula || 'Sin aula')}</p>
+                <span class="badge bg-secondary align-self-start">
+                    <i class="bi bi-people"></i> ${conteos[i]?.count ?? 0} inscritos
+                </span>
+            </div>
+        </div>`).join('');
+}
+
+/* ---------- 3.4 ESTUDIANTE: sus inscripciones y paralelos disponibles ---------- */
+async function obtenerTodosParalelos(){
+    const { data, error } = await db.from('paralelos')
+        .select('id, codigo, horario, aula, materias(nombre), perfiles(nombre_completo)')
+        .order('id');
+    if(error){ console.error(error); return []; }
+    return data;
+}
+
+async function obtenerInscripcionesEstudiante(estudianteId){
+    const { data, error } = await db.from('inscripciones')
+        .select('id, paralelo_id')
+        .eq('estudiante_id', estudianteId);
+    if(error){ console.error(error); return []; }
+    return data;
+}
+
+async function cargarMisInscripciones(){
+    const cont = document.getElementById('listaMisInscripciones');
+    cont.innerHTML = `<div class="col-12 text-center text-muted py-3"><i class="bi bi-hourglass-split"></i> Cargando…</div>`;
+
+    const { data, error } = await db.from('inscripciones')
+        .select('id, paralelos(id, codigo, horario, aula, materias(nombre), perfiles(nombre_completo))')
+        .eq('estudiante_id', usuarioActual.id);
 
     if(error){
-        console.error('Error al cargar reportes:', error);
-        contenedor.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-danger mb-0">
-                    No se pudieron cargar los reportes: ${escapeHtml(error.message)}
-                </div>
-            </div>`;
+        console.error(error);
+        cont.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error al cargar tus materias.</div></div>`;
         return;
     }
 
     if(!data || data.length === 0){
-        contenedor.innerHTML = `
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-clipboard-x"></i>
-                    <p class="mt-2">Aún no tienes notas registradas en el sistema.</p>
-                    <button class="btn btn-usb-azul btn-sm" onclick="mostrarSeccion('notas')">
-                        <i class="bi bi-plus-circle"></i> Registrar mi primera nota
-                    </button>
-                </div>
-            </div>`;
+        cont.innerHTML = `<div class="col-12"><div class="empty-state"><i class="bi bi-journal-x"></i><p class="mt-2">Aún no estás inscrito en ninguna materia.</p></div></div>`;
         return;
     }
 
-    // Cálculos
-    const notas        = data.map(d => Number(d.nota));
-    const total        = notas.length;
-    const promedio     = (notas.reduce((a,b) => a+b, 0) / total).toFixed(2);
-    const maxima       = Math.max(...notas);
-    const minima       = Math.min(...notas);
-    const mejorMateria = data.find(d => Number(d.nota) === maxima)?.materia || '—';
-    const aprobadas    = notas.filter(n => n >= 51).length;
-
-    // Color según promedio
-    let colorPromedio = 'var(--usb-rojo)';
-    if(promedio >= 71) colorPromedio = '#198754';
-    else if(promedio >= 51) colorPromedio = '#e6b800';
-
-    contenedor.innerHTML = `
-        <div class="col-md-6 col-lg-3">
-            <div class="card p-3 h-100 text-center">
-                <i class="bi bi-journal-text" style="font-size:1.8rem;color:var(--usb-azul);"></i>
-                <h3 class="mt-2 mb-0">${total}</h3>
-                <small class="text-muted">Notas registradas</small>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card p-3 h-100 text-center">
-                <i class="bi bi-graph-up-arrow" style="font-size:1.8rem;color:${colorPromedio};"></i>
-                <h3 class="mt-2 mb-0" style="color:${colorPromedio};">${promedio}</h3>
-                <small class="text-muted">Promedio general</small>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card p-3 h-100 text-center">
-                <i class="bi bi-trophy-fill" style="font-size:1.8rem;color:var(--usb-amarillo);"></i>
-                <h3 class="mt-2 mb-0">${maxima}</h3>
-                <small class="text-muted">Nota máxima</small>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card p-3 h-100 text-center">
-                <i class="bi bi-check-circle-fill" style="font-size:1.8rem;color:#198754;"></i>
-                <h3 class="mt-2 mb-0">${aprobadas}/${total}</h3>
-                <small class="text-muted">Materias aprobadas</small>
-            </div>
-        </div>
-
-        <div class="col-md-6">
+    cont.innerHTML = data.map(insc => {
+        const p = insc.paralelos;
+        return `
+        <div class="col-md-6 col-lg-4">
             <div class="card p-3 h-100">
-                <h6 style="color:var(--usb-azul);"><i class="bi bi-star-fill"></i> Mejor materia</h6>
-                <p class="mb-0"><strong>${escapeHtml(mejorMateria)}</strong> — Nota: ${maxima}</p>
+                <h6 class="mb-1" style="color:var(--usb-azul);">${escapeHtml(p.materias?.nombre || '—')} — Paralelo ${escapeHtml(p.codigo)}</h6>
+                <p class="small text-muted mb-1"><i class="bi bi-person-workspace"></i> ${escapeHtml(p.perfiles?.nombre_completo || 'Docente')}</p>
+                <p class="small text-muted mb-2"><i class="bi bi-clock"></i> ${escapeHtml(p.horario || 'Sin horario')}</p>
+                <button class="btn btn-outline-danger btn-sm" onclick="salirDeParalelo(${p.id})">
+                    <i class="bi bi-box-arrow-left"></i> Darme de baja
+                </button>
             </div>
-        </div>
+        </div>`;
+    }).join('');
+}
 
-        <div class="col-md-6">
+async function cargarParalelosDisponibles(){
+    const cont = document.getElementById('listaParalelosDisponibles');
+    cont.innerHTML = `<div class="col-12 text-center text-muted py-3"><i class="bi bi-hourglass-split"></i> Cargando…</div>`;
+
+    const [todos, misInscripciones] = await Promise.all([
+        obtenerTodosParalelos(),
+        obtenerInscripcionesEstudiante(usuarioActual.id)
+    ]);
+
+    const idsInscritos = new Set(misInscripciones.map(i => i.paralelo_id));
+    const disponibles = todos.filter(p => !idsInscritos.has(p.id));
+
+    if(disponibles.length === 0){
+        cont.innerHTML = `<div class="col-12"><div class="empty-state"><i class="bi bi-check2-circle"></i><p class="mt-2">Ya estás inscrito en todos los paralelos disponibles, o aún no hay ninguno creado.</p></div></div>`;
+        return;
+    }
+
+    cont.innerHTML = disponibles.map(p => `
+        <div class="col-md-6 col-lg-4">
             <div class="card p-3 h-100">
-                <h6 style="color:var(--usb-azul);"><i class="bi bi-exclamation-triangle-fill"></i> Nota más baja</h6>
-                <p class="mb-0">Nota mínima: <strong>${minima}</strong></p>
+                <h6 class="mb-1" style="color:var(--usb-azul);">${escapeHtml(p.materias?.nombre || '—')} — Paralelo ${escapeHtml(p.codigo)}</h6>
+                <p class="small text-muted mb-1"><i class="bi bi-person-workspace"></i> ${escapeHtml(p.perfiles?.nombre_completo || 'Docente')}</p>
+                <p class="small text-muted mb-2"><i class="bi bi-clock"></i> ${escapeHtml(p.horario || 'Sin horario')}</p>
+                <button class="btn btn-usb-rojo btn-sm" onclick="inscribirme(${p.id})">
+                    <i class="bi bi-plus-circle"></i> Inscribirme
+                </button>
             </div>
-        </div>
-    `;
+        </div>`).join('');
+}
+
+async function inscribirme(paraleloId){
+    const { error } = await db.from('inscripciones')
+        .insert([{ estudiante_id: usuarioActual.id, paralelo_id: paraleloId }]);
+
+    if(error){
+        console.error(error);
+        mostrarToast('No se pudo inscribir: ' + error.message, 'error');
+        return;
+    }
+
+    mostrarToast('Te inscribiste correctamente ✔', 'success');
+    registrarHistorial('Se inscribió a un paralelo', 'Perfil');
+    await cargarMisInscripciones();
+    await cargarParalelosDisponibles();
+}
+
+async function salirDeParalelo(paraleloId){
+    if(!confirm('¿Darte de baja de este paralelo? Perderás la nota registrada ahí.')) return;
+
+    const { error } = await db.from('inscripciones')
+        .delete()
+        .eq('estudiante_id', usuarioActual.id)
+        .eq('paralelo_id', paraleloId);
+
+    if(error){
+        console.error(error);
+        mostrarToast('No se pudo dar de baja: ' + error.message, 'error');
+        return;
+    }
+
+    mostrarToast('Te diste de baja del paralelo.', 'info');
+    await cargarMisInscripciones();
+    await cargarParalelosDisponibles();
 }
 
 /* =========================================================================
-   5. LISTA DE ESTUDIANTES (sidebar del feed)
-   -------------------------------------------------------------------------
-   Muestra los perfiles registrados en el sistema.
+   4. LISTA DE ESTUDIANTES (sidebar del feed)
    ========================================================================= */
 async function actualizarListaEstudiantes(){
     const cont = document.getElementById('listaEstudiantes');
@@ -257,7 +380,7 @@ async function actualizarListaEstudiantes(){
 }
 
 /* =========================================================================
-   6. SUBIR AVATAR (foto de perfil)
+   5. AVATAR / PORTADA
    ========================================================================= */
 async function subirAvatar(input){
     const archivo = input.files[0];
@@ -281,9 +404,6 @@ async function subirAvatar(input){
     mostrarToast('Foto de perfil actualizada ✔', 'success');
 }
 
-/* =========================================================================
-   7. SUBIR PORTADA
-   ========================================================================= */
 async function subirPortada(input){
     const archivo = input.files[0];
     if(!archivo) return;
@@ -307,12 +427,11 @@ async function subirPortada(input){
 }
 
 /* =========================================================================
-   8. VER PERFIL PÚBLICO DE OTRO ESTUDIANTE
+   6. VER PERFIL PÚBLICO DE OTRO ESTUDIANTE
    ========================================================================= */
 async function verPerfilPublico(id){
     if(!id) return;
 
-    // Traer datos del estudiante
     const { data: perfil, error } = await db.from('perfiles')
         .select('*')
         .eq('id', id)
@@ -323,7 +442,6 @@ async function verPerfilPublico(id){
         return;
     }
 
-    // Traer sus publicaciones
     const { data: pubs } = await db.from('publicaciones')
         .select('id, contenido, imagen, creado_en')
         .eq('autor_id', id)
@@ -349,7 +467,6 @@ async function verPerfilPublico(id){
         `).join('')
         : '<p class="text-muted small">Sin publicaciones aún.</p>';
 
-    // Crear modal dinámico
     let modalEl = document.getElementById('modalPerfilPublico');
     if(!modalEl){
         modalEl = document.createElement('div');

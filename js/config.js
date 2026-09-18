@@ -43,7 +43,7 @@ function mostrarSeccion(id){
     if(id === 'notas')     cargarNotas();
     if(id === 'mascotas')  cargarMascotas();
     if(id === 'tienda')    cargarProductos();
-    if(id === 'perfil')    cargarReportes();
+    if(id === 'perfil')    cargarSeccionCursos();
     if(id === 'feed')      cargarFeed();
     if(id === 'historial') cargarHistorial();
 
